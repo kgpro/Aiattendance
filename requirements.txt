@@ -1,0 +1,19 @@
+# PyTorch packages with GPU support
+--extra-index-url https://download.pytorch.org/whl/cu118
+torch
+torchvision
+torchaudio
+
+# Other packages
+Django
+#tf-keras
+ultralytics
+opencv-python-headless
+PyYAML
+tqdm
+Pillow
+numpy
+#deepface
+channels
+channels-redis
+daphne

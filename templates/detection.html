@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Detection - Pause Attendance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #06b6d4;
+            --dark: #0f172a;
+            --gray-900: #111827;
+            --gray-800: #1f2937;
+            --gray-700: #374151;
+            --gray-600: #4b5563;
+            --gray-500: #6b7280;
+            --gray-400: #9ca3af;
+            --gray-300: #d1d5db;
+            --gray-200: #e5e7eb;
+            --gray-100: #f3f4f6;
+            --gray-50: #f9fafb;
+            --white: #ffffff;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--gray-800);
+            background: var(--gray-50);
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            padding: 1rem 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--gray-700);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--gray-200);
+            color: var(--gray-700);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-300);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+        }
+
+        .page-header p {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Dashboard Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        /* Face Detection Interface */
+        .detection-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 968px) {
+            .detection-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .camera-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .camera-section h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .camera-preview {
+            width: 100%;
+            height: 360px;
+            border-radius: 12px;
+            background: var(--gray-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .camera-preview canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .results-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .results-section h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .detection-results {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .detection-result {
+            background: var(--gray-50);
+            border-radius: 8px;
+            padding: 1rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .detection-result.recognized {
+            border-left-color: var(--success);
+        }
+
+        .detection-result.unknown {
+            border-left-color: var(--warning);
+        }
+
+        .detection-result.error {
+            border-left-color: var(--danger);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .result-time {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        .result-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .result-detail {
+            font-size: 0.875rem;
+        }
+
+        .result-detail .label {
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        .result-detail .value {
+            color: var(--gray-900);
+            font-weight: 600;
+        }
+
+        .recognized .value {
+            color: var(--success);
+        }
+
+        .unknown .value {
+            color: var(--warning);
+        }
+
+        /* Attendance Log */
+        .attendance-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .attendance-section h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .attendance-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+
+        .filter-group select, .filter-group input {
+            padding: 0.5rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .attendance-table th, .attendance-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .attendance-table th {
+            background: var(--gray-50);
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .attendance-table tr:hover {
+            background: var(--gray-50);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-present {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-absent {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 1000;
+        }
+
+        .status-connected {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-disconnected {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .status-connecting {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: currentColor;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .detection-container {
+                grid-template-columns: 1fr;
+            }
+
+            .camera-controls {
+                flex-direction: column;
+            }
+
+            .attendance-filters {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-user-check"></i> Pause Attendance
+            </a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="#dashboard">Dashboard</a></li>
+                <li><a href="{% url "students" %}">Students</a></li>
+                <li><a href="#reports">Reports</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <a href="{% url "authentication:logout" %}" class="btn btn-primary">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1><i class="fas fa-camera"></i> Face Detection</h1>
+                <p>Real-time face recognition for attendance tracking</p>
+            </div>
+
+            <!-- Stats Dashboard -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-number" id="total-students">0</div>
+                    <div class="stat-label">Total Students</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="stat-number" id="today-attendance">0%</div>
+                    <div class="stat-label">Today's Attendance</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-number" id="current-time">00:00</div>
+                    <div class="stat-label">Current Time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="stat-number" id="detection-speed">0ms</div>
+                    <div class="stat-label">Detection Speed</div>
+                </div>
+            </div>
+
+            <!-- Face Detection Interface -->
+            <div class="detection-container">
+                <!-- Camera Section -->
+                <div class="camera-section">
+                    <h2><i class="fas fa-video"></i> Processed Video Feed</h2>
+                    <div class="camera-preview" id="camera-preview">
+                        <canvas id="processed-video"></canvas>
+                        <div id="camera-placeholder" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                            <i class="fas fa-camera" style="font-size: 3rem; color: var(--gray-400); margin-bottom: 1rem;"></i>
+                            <p style="color: var(--gray-500);">Processed video will appear here</p>
+                            <p style="color: var(--gray-400); font-size: 0.875rem;">Start detection to begin</p>
+                        </div>
+                    </div>
+                    <div class="camera-controls">
+                        <button id="start-camera" class="btn btn-primary">
+                            <i class="fas fa-play"></i> Start Detection
+                        </button>
+                        <button id="stop-camera" class="btn btn-secondary" disabled>
+                            <i class="fas fa-stop"></i> Stop Detection
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Section -->
+                <div class="results-section">
+                    <h2><i class="fas fa-search"></i> Detection Results</h2>
+                    <div class="detection-results" id="detection-results">
+                        <div class="detection-result">
+                            <div class="result-header">
+                                <div class="result-title">Waiting for detection...</div>
+                            </div>
+                            <p style="color: var(--gray-500);">Results will appear here when faces are detected</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Log Section -->
+            <div class="attendance-section">
+                <h2><i class="fas fa-history"></i> Recent Attendance</h2>
+                <div class="attendance-filters">
+                    <div class="filter-group">
+                        <label for="date-filter">Date</label>
+                        <input type="date" id="date-filter" value="">
+                    </div>
+                    <div class="filter-group">
+                        <label for="status-filter">Status</label>
+                        <select id="status-filter">
+                            <option value="all">All</option>
+                            <option value="present">Present</option>
+                            <option value="absent">Absent</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="search-filter">Search</label>
+                        <input type="text" id="search-filter" placeholder="Search by name...">
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="attendance-table">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                                <th>Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendance-table-body">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 2rem; color: var(--gray-500);">
+                                    No attendance records yet
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connection Status -->
+    <div class="connection-status status-disconnected" id="connection-status">
+        <i class="fas fa-plug"></i>
+        <span>Disconnected</span>
+    </div>
+
+    <script>
+        class FaceDetectionWebSocket {
+            constructor() {
+                this.socket = null;
+                this.isConnected = false;
+                this.isProcessing = false;
+                this.canvas = document.getElementById('processed-video');
+                this.ctx = this.canvas.getContext('2d');
+                this.connectionStatus = document.getElementById('connection-status');
+                this.startCameraBtn = document.getElementById('start-camera');
+                this.stopCameraBtn = document.getElementById('stop-camera');
+                this.detectionResults = document.getElementById('detection-results');
+                this.attendanceTableBody = document.getElementById('attendance-table-body');
+                this.cameraPlaceholder = document.getElementById('camera-placeholder');
+                
+                // Stats elements
+                this.totalStudentsElement = document.getElementById('total-students');
+                this.todayAttendanceElement = document.getElementById('today-attendance');
+                this.currentTimeElement = document.getElementById('current-time');
+                this.detectionSpeedElement = document.getElementById('detection-speed');
+                
+                this.frameTimes = [];
+                this.frameCounter = 0;
+                this.lastFpsUpdate = Date.now();
+                
+                this.initializeEventListeners();
+                this.updateCurrentTime();
+                setInterval(() => this.updateCurrentTime(), 1000);
+            }
+            
+            initializeEventListeners() {
+                this.startCameraBtn.addEventListener('click', () => this.startDetection());
+                this.stopCameraBtn.addEventListener('click', () => this.stopDetection());
+            }
+            
+            updateCurrentTime() {
+                const now = new Date();
+                this.currentTimeElement.textContent = now.toLocaleTimeString();
+            }
+            
+            updateConnectionStatus(status) {
+                this.connectionStatus.className = 'connection-status';
+                
+                switch (status) {
+                    case 'connected':
+                        this.connectionStatus.classList.add('status-connected');
+                        this.connectionStatus.innerHTML = '<i class="fas fa-plug"></i> <span>Connected</span>';
+                        break;
+                    case 'disconnected':
+                        this.connectionStatus.classList.add('status-disconnected');
+                        this.connectionStatus.innerHTML = '<i class="fas fa-plug"></i> <span>Disconnected</span>';
+                        break;
+                    case 'connecting':
+                        this.connectionStatus.classList.add('status-connecting');
+                        this.connectionStatus.innerHTML = '<i class="fas fa-plug"></i> <span>Connecting</span> <div class="loading"></div>';
+                        break;
+                }
+            }
+            
+            async startDetection() {
+                if (this.isProcessing) return;
+                
+                try {
+                    this.updateConnectionStatus('connecting');
+                    
+                    // Get camera access
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { 
+                            width: { ideal: 640 },
+                            height: { ideal: 480 },
+                            facingMode: 'user'
+                        }
+                    });
+                    
+                    // Set canvas dimensions
+                    const track = stream.getVideoTracks()[0];
+                    const settings = track.getSettings();
+                    this.canvas.width = settings.width;
+                    this.canvas.height = settings.height;
+                    
+                    // Connect to WebSocket
+                    await this.connectWebSocket();
+                    
+                    // Start sending frames
+                    this.isProcessing = true;
+                    this.startCameraBtn.disabled = true;
+                    this.stopCameraBtn.disabled = false;
+                    this.cameraPlaceholder.style.display = 'none';
+                    
+                    // Start processing frames
+                    this.processFrames(stream);
+                    
+                } catch (error) {
+                    console.error('Error starting detection:', error);
+                    this.updateConnectionStatus('disconnected');
+                    this.showError('Failed to access camera: ' + error.message);
+                }
+            }
+            
+            async connectWebSocket() {
+                return new Promise((resolve, reject) => {
+                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    const wsUrl = `${protocol}//${window.location.host}/ws/face-detection/`;
+                    
+                    this.socket = new WebSocket(wsUrl);
+                    
+                    this.socket.onopen = () => {
+                        console.log('WebSocket connected');
+                        this.isConnected = true;
+                        this.updateConnectionStatus('connected');
+                        resolve();
+                    };
+                    
+                    this.socket.onmessage = (event) => {
+                        this.handleMessage(event.data);
+                    };
+                    
+                    this.socket.onclose = () => {
+                        console.log('WebSocket disconnected');
+                        this.isConnected = false;
+                        this.updateConnectionStatus('disconnected');
+                        if (this.isProcessing) {
+                            this.stopDetection();
+                        }
+                    };
+                    
+                    this.socket.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                        reject(error);
+                    };
+                });
+            }
+            
+            async processFrames(stream) {
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.play();
+                
+                // Wait for video to be ready
+                await new Promise(resolve => {
+                    video.onloadedmetadata = resolve;
+                });
+                
+                const processFrame = async () => {
+                    if (!this.isProcessing) return;
+                    
+                    try {
+                        // Draw frame to canvas
+                        const tempCanvas = document.createElement('canvas');
+                        const tempCtx = tempCanvas.getContext('2d');
+                        tempCanvas.width = video.videoWidth;
+                        tempCanvas.height = video.videoHeight;
+                        tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+                        
+                        // Convert to JPEG and send via WebSocket
+                        tempCanvas.toBlob(blob => {
+                            if (this.isConnected && this.socket.readyState === WebSocket.OPEN) {
+                                this.socket.send(blob);
+                            }
+                        }, 'image/jpeg', 0.8);
+                        
+                        // Calculate FPS
+                        this.calculateFps();
+                        
+                        // Schedule next frame
+                        setTimeout(() => requestAnimationFrame(processFrame), 100); // ~10 FPS to backend
+                    } catch (error) {
+                        console.error('Error processing frame:', error);
+                    }
+                };
+                
+                processFrame();
+            }
+            
+            calculateFps() {
+                const now = Date.now();
+                this.frameTimes.push(now);
+                
+                // Remove frames older than 1 second
+                while (this.frameTimes.length > 0 && now - this.frameTimes[0] > 1000) {
+                    this.frameTimes.shift();
+                }
+                
+                // Update FPS display once per second
+                if (now - this.lastFpsUpdate >= 1000) {
+                    this.frameRate = this.frameTimes.length;
+                    this.lastFpsUpdate = now;
+                }
+            }
+            
+            handleMessage(message) {
+                try {
+                    const data = JSON.parse(message);
+                    
+                    if (data.type === 'detection_results') {
+                        this.displayProcessedFrame(data);
+                        this.updateDetectionResults(data);
+                    } else if (data.type === 'recognition_results') {
+                        console.log("📩 Incoming detection message:", data)
+                        this.updateRecognitionResults(data);
+                    } else if (data.type === 'error') {
+                        this.showError(data.message);
+                    }
+                } catch (error) {
+                    console.error('Error parsing message:', error, message);
+                }
+            }
+            
+            displayProcessedFrame(data) {
+                // Create an image from the base64 data
+                const img = new Image();
+                img.onload = () => {
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                    this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
+                };
+                img.src = 'data:image/jpeg;base64,' + data.frame;
+            }
+            
+            updateRecognitionResults(data) {
+                const recognition = data.recognition;
+                if (recognition) {
+                    // Add a new row
+                    const attendanceHTML = this.createAttendanceRow(recognition);
+                    this.attendanceTableBody.insertAdjacentHTML('beforeend', attendanceHTML);
+            
+                    // Update detection display with recognition info
+                    this.updateDetectionWithRecognition(recognition);
+            
+                    // Optional: log in console for debugging
+                    console.log(`✅ Marked present: ${recognition.person_name} (${recognition.student_id})`);
+                }
+            }
+
+            updateDetectionWithRecognition(recognition) {
+            // Find the detection result with matching bounding box and update it
+             const detectionElements = this.detectionResults.querySelectorAll('.detection-result');
+    
+            detectionElements.forEach(element => {
+                // You'll need to store bbox data in your detection elements
+                // This is a simplified example
+                if (element.dataset.bbox === JSON.stringify(recognition.bbox)) {
+                    if (recognition.person_name && recognition.person_name !== 'Unknown') {
+                        element.classList.remove('unknown');
+                        element.classList.add('recognized');
+                        
+                        const titleElement = element.querySelector('.result-title');
+                        if (titleElement) {
+                            titleElement.textContent = `Recognized: ${recognition.person_name}`;
+                        }
+                        
+                        // Add confidence and distance details
+                        const detailsHtml = `
+                            <div class="result-detail">
+                                <span class="label">Confidence:</span>
+                                <span class="value">${(recognition.confidence * 100).toFixed(1)}%</span>
+                            </div>
+                            <div class="result-detail">
+                                <span class="label">Distance:</span>
+                                <span class="value">${recognition.distance.toFixed(4)}</span>
+                            </div>
+                        `;
+                        
+                        const detailsElement = element.querySelector('.result-details');
+                        if (detailsElement) {
+                            detailsElement.innerHTML = detailsHtml;
+                        }
+                    }
+                }
+            });
+        }
+
+            
+            createDetectionResult(detection) {
+                const time = new Date().toLocaleTimeString();
+                const bboxString = JSON.stringify(detection.bbox);
+                
+                return `
+                    <div class="detection-result unknown" data-bbox='${bboxString}'>
+                        <div class="result-header">
+                            <div class="result-title">Detecting...</div>
+                            <div class="result-time">${time}</div>
+                        </div>
+                        <div class="result-details">
+                            <div class="result-detail">
+                                <span class="label">Detection Confidence:</span>
+                                <span class="value">${(detection.confidence * 100).toFixed(1)}%</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            createAttendanceRow(recognition) {
+                const now = new Date();
+                return `
+                    <tr>
+                        <td>${recognition.student_id}</td>
+                        <td>${recognition.person_name}</td>
+                        <td>${now.toLocaleTimeString()}</td>
+                        <td><span class="status-badge status-present">Present</span></td>
+                        <td>${(recognition.confidence * 100).toFixed(1)}%</td>
+                    </tr>
+                `;
+            }
+            
+            showError(message) {
+                this.detectionResults.innerHTML = `
+                    <div class="detection-result error">
+                        <div class="result-header">
+                            <div class="result-title">Error</div>
+                            <div class="result-time">${new Date().toLocaleTimeString()}</div>
+                        </div>
+                        <p>${message}</p>
+                    </div>
+                `;
+            }
+            
+            stopDetection() {
+                this.isProcessing = false;
+                this.isConnected = false;
+                
+                if (this.socket) {
+                    this.socket.close();
+                }
+                
+                this.startCameraBtn.disabled = false;
+                this.stopCameraBtn.disabled = true;
+                this.cameraPlaceholder.style.display = 'flex';
+                
+                this.updateConnectionStatus('disconnected');
+                
+                // Clear canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.fillStyle = 'black';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.fillStyle = 'white';
+                this.ctx.font = '20px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('Detection Stopped', this.canvas.width / 2, this.canvas.height / 2);
+            }
+            
+            async updateStats() {
+                try {
+                    const response = await fetch('/api/attendance/stats/');
+                    const data = await response.json();
+                    
+                    this.totalStudentsElement.textContent = data.total_students;
+                    this.todayAttendanceElement.textContent = `${data.attendance_rate}%`;
+                } catch (error) {
+                    console.error('Failed to fetch stats:', error);
+                    // Fallback to reasonable defaults
+                    this.totalStudentsElement.textContent = '0';
+                    this.todayAttendanceElement.textContent = '0%';
+                }
+            }
+        }
+        
+        // Initialize the application when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const faceDetectionApp = new FaceDetectionWebSocket();
+            
+            // Set today's date as default for the date filter
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date-filter').value = today;
+            
+            // Add event listeners for filters
+            document.getElementById('date-filter').addEventListener('change', updateAttendanceTable);
+            document.getElementById('status-filter').addEventListener('change', updateAttendanceTable);
+            document.getElementById('search-filter').addEventListener('input', updateAttendanceTable);
+            
+            function updateAttendanceTable() {
+                // This would typically make an API call to filter attendance data
+                console.log('Filters changed - would fetch filtered data');
+            }
+            
+            // Simulate initial stats
+            faceDetectionApp.updateStats();
+        });
+    </script>
+</body>
+</html>

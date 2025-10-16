@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management - Pause Attendance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Your existing CSS remains the same */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #06b6d4;
+            --dark: #0f172a;
+            --gray-900: #111827;
+            --gray-800: #1f2937;
+            --gray-700: #374151;
+            --gray-600: #4b5563;
+            --gray-500: #6b7280;
+            --gray-400: #9ca3af;
+            --gray-300: #d1d5db;
+            --gray-200: #e5e7eb;
+            --gray-100: #f3f4f6;
+            --gray-50: #f9fafb;
+            --white: #ffffff;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--gray-800);
+            background: var(--gray-50);
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            padding: 1rem 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--gray-700);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after, .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--gray-200);
+            color: var(--gray-700);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-300);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--gray-900);
+        }
+
+        .page-header p {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .tab {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray-600);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        /* Card */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--gray-700);
+            background-color: var(--gray-50);
+        }
+
+        tr:hover {
+            background-color: var(--gray-50);
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 0.5rem;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-present {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-absent {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .status-late {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Form */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        /* File Upload */
+        .file-upload {
+            border: 2px dashed var(--gray-300);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .file-upload:hover {
+            border-color: var(--primary);
+        }
+
+        .file-upload.drag-over {
+            border-color: var(--primary);
+            background-color: rgba(99, 102, 241, 0.05);
+        }
+
+        .file-upload-icon {
+            font-size: 2.5rem;
+            color: var(--gray-400);
+            margin-bottom: 1rem;
+        }
+
+        .file-upload-text {
+            color: var(--gray-600);
+            margin-bottom: 1rem;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-label {
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+
+        .filter-select {
+            padding: 0.5rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            background-color: white;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--gray-900);
+            color: white;
+            padding: 3rem 0;
+            margin-top: 3rem;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-logo i {
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .footer-description {
+            color: var(--gray-400);
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-heading {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-links a {
+            color: var(--gray-400);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid var(--gray-800);
+            color: var(--gray-400);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .tabs {
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+            }
+
+            .filters {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        .image-preview-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .image-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid var(--gray-300);
+            position: relative;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray-600);
+        }
+
+        .student-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .attendance-chart-container {
+            height: 300px;
+            margin-bottom: 1.5rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-user-check"></i> Pause Attendance
+            </a>
+            <ul class="nav-links">
+                <li><a href="{% url "homepage" %}">Home</a></li>
+                <li><a href="{% url "detection" %}">Face Detection</a></li>
+                <li><a href="#">Attendance</a></li>
+            </ul>
+            <div class="nav-buttons">
+               {% if not user.is_authenticated %}
+                    <a href="{% url 'authentication:login' %}" class="btn btn-secondary">Login</a>
+                {% else %}
+                    <span style="color: #6366F1FF ; margin-left: 2rem; font-size:1rem ">
+                        <p> <strong> Hello, {{ user.username}}</strong> </p>
+                </span>
+                <a href="{% url 'authentication:logout' %}" class="btn btn-secondary">Logout</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div>
+                    <h1>Student Management</h1>
+                    <p>Add, edit, and manage student profiles and facial data</p>
+                </div>
+                <a href="#" class="btn btn-primary" onclick="showTab('enroll')">Enroll New Student</a>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('all-students')">All Students</div>
+                <div class="tab" onclick="showTab('enroll')">Enroll Student</div>
+                <div class="tab" onclick="showTab('upload-images')">Upload Images</div>
+            </div>
+
+            <!-- All Students Tab -->
+            <div id="all-students" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Student Directory</h2>
+                        <div class="filters">
+                            <div class="filter-group">
+                                <span class="filter-label">Filter by:</span>
+                                <select class="filter-select" id="class-filter">
+                                    <option value="">All Classes</option>
+                                    <option value="IT">IT</option>
+                                    <option value="CSE">CSE</option>
+                                    <option value="ME">ME</option>
+                                    <option value="EC">EC</option>
+                                    <option value="CIVIL">CIVIL</option>
+                                    <option value="IOT">IOT</option>
+                                    <option value="BLOCKCHAIN">BLOCKCHAIN</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <input type="text" class="form-input" id="search-input" placeholder="Search students...">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="students-table">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>ID</th>
+                                    <th>Class</th>
+                                    <th>Facial Data</th>
+                                    <th>Last Attendance</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="students-table-body">
+                                <!-- Student data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enroll Student Tab -->
+            <div id="enroll" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Enroll New Student</h2>
+                    </div>
+                    <form id="enroll-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" class="form-input" id="full-name" placeholder="Enter full name" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Student ID</label>
+                                <input type="text" class="form-input" id="student-id" placeholder="Enter enrollment ID" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Branch</label>
+                                <select class="form-input" id="branch" required>
+                                    <option value="">Select Branch</option>
+                                    <option value="IT">IT</option>
+                                    <option value="CSE">CSE</option>
+                                    <option value="ME">ME</option>
+                                    <option value="EC">EC</option>
+                                    <option value="CIVIL">CIVIL</option>
+                                    <option value="IOT">IOT</option>
+                                    <option value="BLOCKCHAIN">BLOCKCHAIN</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-input" id="email" placeholder="Enter email address" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Upload Images (Max 3)</label>
+                            <input type="file" id="image-upload" accept="image/*" multiple style="display: none;">
+                            <div class="file-upload" id="file-upload-area" onclick="document.getElementById('image-upload').click()">
+                                <div class="file-upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <p class="file-upload-text">Click to select images or drag and drop (Max 3)</p>
+                                <p class="file-upload-text" style="font-size: 0.875rem;">Recommended: 3 images from different angles</p>
+                            </div>
+                            <div class="image-preview-container" id="image-preview-container"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Save Student</button>
+                            <button type="reset" class="btn btn-secondary" onclick="resetImageUpload()">Reset Form</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Upload Images Tab -->
+            <div id="upload-images" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Upload Facial Images</h2>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Select Student</label>
+                        <select class="form-input" id="student-select">
+                            <option value="">Select a student</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Upload Images (Max 3)</label>
+                        <input type="file" id="additional-image-upload" accept="image/*" multiple style="display: none;">
+                        <div class="file-upload" id="additional-file-upload-area" onclick="document.getElementById('additional-image-upload').click()">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <p class="file-upload-text">Click to select images or drag and drop (Max 3)</p>
+                            <p class="file-upload-text" style="font-size: 0.875rem;">Recommended: 3 images from different angles</p>
+                        </div>
+                        <div class="image-preview-container" id="additional-image-preview-container"></div>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" id="upload-images-btn">Upload Images</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Detail Modal -->
+    <div class="modal" id="student-detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-student-name">Student Details</h2>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="student-details-grid">
+                <div>
+                    <p><strong>Student ID:</strong> <span id="modal-student-id"></span></p>
+                    <p><strong>Branch:</strong> <span id="modal-student-branch"></span></p>
+                    <p><strong>Email:</strong> <span id="modal-student-email"></span></p>
+                </div>
+                <div>
+                    <p><strong>Enrollment Date:</strong> <span id="modal-enrollment-date"></span></p>
+                    <p><strong>Images Registered:</strong> <span id="modal-images-count"></span></p>
+                    <p><strong>Today's Status:</strong> <span id="modal-today-status"></span></p>
+                </div>
+            </div>
+            
+            <div class="attendance-chart-container">
+                <canvas id="attendance-chart"></canvas>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-success" id="mark-present-btn">Mark Present</button>
+                <button class="btn btn-danger" id="mark-absent-btn">Mark Absent</button>
+                <button class="btn btn-secondary" id="refresh-chart-btn">Refresh Chart</button>
+                <button class="btn btn-danger" id="delete-student-btn">Delete Student</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-info">
+                <div class="footer-logo">
+                    <i class="fas fa-user-check"></i> Pause Attendance
+                </div>
+                <p class="footer-description">
+                    Revolutionizing attendance tracking with cutting-edge facial recognition technology for educational institutions and businesses.
+                </p>
+            </div>
+
+            <div class="footer-links-column">
+                <h3 class="footer-heading">Quick Links</h3>
+                <ul class="footer-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="detection.html">Face Detection</a></li>
+                    <li><a href="students.html">Students</a></li>
+                    <li><a href="attendance.html">Attendance</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-links-column">
+                <h3 class="footer-heading">Account</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-links-column">
+                <h3 class="footer-heading">Contact Us</h3>
+                <ul class="footer-links">
+                    <li><a href="mailto:support@pauseattendance.com">support@pauseattendance.com</a></li>
+                    <li><a href="tel:+11234567890">+1 (123) 456-7890</a></li>
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Request a Demo</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2025 Pause Attendance. All rights reserved.</p>
+        </div>
+    </footer>
+
+   <script>
+        // Global variables
+        let students = [];
+        let selectedStudentId = null;
+        let attendanceChart = null;
+        let currentFiles = [];
+        let additionalFiles = [];
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load students data
+            loadStudents();
+            
+            // Set up event listeners
+            document.getElementById('enroll-form').addEventListener('submit', handleEnrollSubmit);
+            document.getElementById('image-upload').addEventListener('change', handleImageUpload);
+            document.getElementById('additional-image-upload').addEventListener('change', handleAdditionalImageUpload);
+            document.getElementById('upload-images-btn').addEventListener('click', handleAdditionalImagesUpload);
+            document.getElementById('class-filter').addEventListener('change', filterStudents);
+            document.getElementById('search-input').addEventListener('input', filterStudents);
+            
+            // Modal buttons
+            document.getElementById('mark-present-btn').addEventListener('click', markAttendancePresent);
+            document.getElementById('mark-absent-btn').addEventListener('click', markAttendanceAbsent);
+            document.getElementById('refresh-chart-btn').addEventListener('click', refreshAttendanceChart);
+            document.getElementById('delete-student-btn').addEventListener('click', deleteStudent);
+            
+            // Setup drag and drop
+            setupDragAndDrop('file-upload-area', 'image-upload', handleImageUpload);
+            setupDragAndDrop('additional-file-upload-area', 'additional-image-upload', handleAdditionalImageUpload);
+            
+            // Add event delegation for view and edit buttons
+            document.getElementById('students-table-body').addEventListener('click', function(e) {
+                if (e.target.classList.contains('view-btn')) {
+                    const studentId = parseInt(e.target.getAttribute('data-student-id'));
+                    viewStudent(studentId);
+                }
+                if (e.target.classList.contains('edit-btn')) {
+                    const studentId = parseInt(e.target.getAttribute('data-student-id'));
+                    editStudent(studentId);
+                }
+            });
+        });
+
+        // Setup drag and drop functionality
+        function setupDragAndDrop(dropAreaId, inputId, handler) {
+            const dropArea = document.getElementById(dropAreaId);
+            const fileInput = document.getElementById(inputId);
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                dropArea.classList.add('drag-over');
+            }
+            
+            function unhighlight() {
+                dropArea.classList.remove('drag-over');
+            }
+            
+            dropArea.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                // Create a new event to simulate the file input change
+                const event = new Event('change');
+                Object.defineProperty(event, 'target', {
+                    value: {
+                        files: files
+                    }
+                });
+                
+                // Call the handler
+                handler(event);
+            }
+        }
+
+        // Reset image upload
+        function resetImageUpload() {
+            document.getElementById('image-preview-container').innerHTML = '';
+            document.getElementById('image-upload').value = '';
+            currentFiles = [];
+        }
+
+        // Load students from backend
+        async function loadStudents() {
+            try {
+                // This would be an API call to your backend
+                const response = await fetch('{% url "api:student-list" %}');
+                const data = await response.json();
+                students = data.students;
+                
+                populateStudentsTable();
+                populateStudentSelect();
+            } catch (error) {
+                console.error('Error loading students:', error);
+            }
+        }
+
+        // Populate students table
+        function populateStudentsTable() {
+            const tableBody = document.getElementById('students-table-body');
+            tableBody.innerHTML = '';
+            
+            students.forEach(student => {
+                const row = document.createElement('tr');
+                
+                // Format last attendance date
+                const lastAttendance = student.last_attendance ? 
+                    new Date(student.last_attendance).toLocaleString() : 
+                    'Never';
+                
+                // Determine status
+                let statusClass = 'status-absent';
+                let statusText = 'Absent';
+                
+                if (student.today_status === 'present') {
+                    statusClass = 'status-present';
+                    statusText = 'Present';
+                } else if (student.today_status === 'late') {
+                    statusClass = 'status-late';
+                    statusText = 'Late';
+                }
+                
+                row.innerHTML = `
+                    <td>
+                        <img src="${student.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=6366f1&color=fff`}" 
+                             alt="${student.name}" class="avatar">
+                        ${student.name}
+                    </td>
+                    <td>${student.id}</td>
+                    <td>${student.branch}</td>
+                    <td>${student.images_count} images</td>
+                    <td>${lastAttendance}</td>
+                    <td><span class="status ${statusClass}">${statusText}</span></td>
+                    <td class="actions">
+                        <button class="btn btn-sm btn-outline view-btn" data-student-id="${student.id}">View</button>
+                        <button class="btn btn-sm btn-secondary edit-btn" data-student-id="${student.id}">Edit</button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Populate student select dropdown
+        function populateStudentSelect() {
+            const select = document.getElementById('student-select');
+            select.innerHTML = '<option value="">Select a student</option>';
+            
+            students.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.id;
+                option.textContent = `${student.name} (${student.id})`;
+                select.appendChild(option);
+            });
+        }
+
+        // Filter students based on class and search input
+        function filterStudents() {
+            const classFilter = document.getElementById('class-filter').value;
+            const searchText = document.getElementById('search-input').value.toLowerCase();
+            
+            const filteredStudents = students.filter(student => {
+                const matchesClass = !classFilter || student.branch === classFilter;
+                const matchesSearch = !searchText || 
+                    student.name.toLowerCase().includes(searchText) || 
+                    student.id.toString().toLowerCase().includes(searchText);
+                
+                return matchesClass && matchesSearch;
+            });
+            
+            // Update table with filtered students
+            const tableBody = document.getElementById('students-table-body');
+            tableBody.innerHTML = '';
+            
+            filteredStudents.forEach(student => {
+                const row = document.createElement('tr');
+                
+                // Format last attendance date
+                const lastAttendance = student.last_attendance ? 
+                    new Date(student.last_attendance).toLocaleString() : 
+                    'Never';
+                
+                // Determine status
+                let statusClass = 'status-absent';
+                let statusText = 'Absent';
+                
+                if (student.today_status === 'present') {
+                    statusClass = 'status-present';
+                    statusText = 'Present';
+                } else if (student.today_status === 'late') {
+                    statusClass = 'status-late';
+                    statusText = 'Late';
+                }
+                
+                row.innerHTML = `
+                    <td>
+                        <img src="${student.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=6366f1&color=fff`}" 
+                             alt="${student.name}" class="avatar">
+                        ${student.name}
+                    </td>
+                    <td>${student.id}</td>
+                    <td>${student.branch}</td>
+                    <td>${student.images_count} images</td>
+                    <td>${lastAttendance}</td>
+                    <td><span class="status ${statusClass}">${statusText}</span></td>
+                    <td class="actions">
+                        <button class="btn btn-sm btn-outline view-btn" data-student-id="${student.id}">View</button>
+                        <button class="btn btn-sm btn-secondary edit-btn" data-student-id="${student.id}">Edit</button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Handle image upload
+        function handleImageUpload(event) {
+            const files = event.target.files;
+            const previewContainer = document.getElementById('image-preview-container');
+            
+            // Clear existing files if we're starting over
+            if (currentFiles.length + files.length > 3) {
+                alert('You can only upload up to 3 images');
+                event.target.value = '';
+                return;
+            }
+            
+            for (let i = 0; i < files.length; i++) {
+                if (currentFiles.length >= 3) break;
+                
+                const file = files[i];
+                currentFiles.push(file);
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewDiv = document.createElement('div');
+                    previewDiv.style.position = 'relative';
+                    previewDiv.style.display = 'inline-block';
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'image-preview';
+                    
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'remove-image';
+                    removeBtn.innerHTML = '&times;';
+                    removeBtn.onclick = function() {
+                        previewDiv.remove();
+                        const index = currentFiles.indexOf(file);
+                        if (index > -1) {
+                            currentFiles.splice(index, 1);
+                        }
+                    };
+                    
+                    previewDiv.appendChild(img);
+                    previewDiv.appendChild(removeBtn);
+                    previewContainer.appendChild(previewDiv);
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            // Reset the input to allow selecting the same file again
+            event.target.value = '';
+        }
+
+        // Handle additional image upload
+        function handleAdditionalImageUpload(event) {
+            const files = event.target.files;
+            const previewContainer = document.getElementById('additional-image-preview-container');
+            
+            // Clear existing files if we're starting over
+            if (additionalFiles.length + files.length > 3) {
+                alert('You can only upload up to 3 images');
+                event.target.value = '';
+                return;
+            }
+            
+            for (let i = 0; i < files.length; i++) {
+                if (additionalFiles.length >= 3) break;
+                
+                const file = files[i];
+                additionalFiles.push(file);
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewDiv = document.createElement('div');
+                    previewDiv.style.position = 'relative';
+                    previewDiv.style.display = 'inline-block';
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'image-preview';
+                    
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'remove-image';
+                    removeBtn.innerHTML = '&times;';
+                    removeBtn.onclick = function() {
+                        previewDiv.remove();
+                        const index = additionalFiles.indexOf(file);
+                        if (index > -1) {
+                            additionalFiles.splice(index, 1);
+                        }
+                    };
+                    
+                    previewDiv.appendChild(img);
+                    previewDiv.appendChild(removeBtn);
+                    previewContainer.appendChild(previewDiv);
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            // Reset the input to allow selecting the same file again
+            event.target.value = '';
+        }
+
+        // Handle enroll form submission
+        async function handleEnrollSubmit(event) {
+            event.preventDefault();
+            
+            if (currentFiles.length === 0) {
+                alert('Please upload at least one image');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('name', document.getElementById('full-name').value);
+            formData.append('person_id', document.getElementById('student-id').value);
+            formData.append('department', document.getElementById('branch').value);
+            formData.append('email', document.getElementById('email').value);
+            
+            // Append all selected files
+            currentFiles.forEach(file => {
+                formData.append('images', file);
+            });
+            
+            try {
+                // This would be an API call to your backend
+                const response = await fetch('{% url "api:enroll-student" %}', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    alert('Student enrolled successfully!');
+                    resetImageUpload();
+                    event.target.reset();
+                    loadStudents(); // Reload the student list
+                    showTab('all-students');
+                } else {
+                    alert('Error enrolling student');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error enrolling student');
+            }
+        }
+
+        // Handle additional images upload
+        async function handleAdditionalImagesUpload() {
+            const studentId = document.getElementById('student-select').value;
+            
+            if (!studentId) {
+                alert('Please select a student');
+                return;
+            }
+            
+            if (additionalFiles.length === 0) {
+                alert('Please upload at least one image');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('student_id', studentId);
+            
+            // Append all selected files
+            additionalFiles.forEach(file => {
+                formData.append('images', file);
+            });
+            
+            try {
+                // This would be an API call to your backend
+                const response = await fetch('{% url "api:upload-images" %}', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    alert('Images uploaded successfully!');
+                    document.getElementById('additional-image-preview-container').innerHTML = '';
+                    document.getElementById('additional-image-upload').value = '';
+                    additionalFiles = [];
+                    loadStudents(); // Reload the student list
+                } else {
+                    alert('Error uploading images');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error uploading images');
+            }
+        }
+
+        // View student details
+        async function viewStudent(studentId) {
+            try {
+                // Convert to integer if needed
+                const id = typeof studentId === 'string' ? parseInt(studentId) : studentId;
+                
+                // This would be an API call to your backend
+                const response = await fetch(`{% url "api:student-detail" 0 %}`.replace('0', id));
+                const student = await response.json();
+                
+                // Populate modal with student data
+                document.getElementById('modal-student-name').textContent = student.name;
+                document.getElementById('modal-student-id').textContent = student.id;
+                document.getElementById('modal-student-branch').textContent = student.department;
+                document.getElementById('modal-student-email').textContent = student.email;
+                document.getElementById('modal-enrollment-date').textContent = new Date(student.enrollment_date).toLocaleDateString();
+                document.getElementById('modal-images-count').textContent = student.images_count;
+                document.getElementById('modal-today-status').textContent = student.today_status.charAt(0).toUpperCase() + student.today_status.slice(1);
+                
+                // Store the selected student ID
+                selectedStudentId = id;
+                
+                // Create or update attendance chart
+                createAttendanceChart(student.attendance_data);
+                
+                // Show the modal
+                document.getElementById('student-detail-modal').style.display = 'flex';
+            } catch (error) {
+                console.error('Error loading student details:', error);
+            }
+        }
+
+        // Create attendance chart
+        function createAttendanceChart(attendanceData) {
+            const ctx = document.getElementById('attendance-chart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (attendanceChart) {
+                attendanceChart.destroy();
+            }
+            
+            // Prepare data for chart
+            const labels = attendanceData.labels || [];
+            const data = attendanceData.data || [];
+            
+            attendanceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Attendance Days',
+                        data: data,
+                        backgroundColor: data.map(value => 
+                            value > 0 ? 'rgba(16, 185, 129, 0.7)' : 'rgba(239, 68, 68, 0.7)'
+                        ),
+                        borderColor: data.map(value => 
+                            value > 0 ? 'rgb(16, 185, 129)' : 'rgb(239, 68, 68)'
+                        ),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Mark attendance as present
+        async function markAttendancePresent() {
+            if (!selectedStudentId) return;
+            
+            try {
+                const response = await fetch(`{% url "api:mark-attendance" 0 %}`.replace('0', selectedStudentId), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        status: 'present'
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Attendance marked as present');
+                    closeModal();
+                    loadStudents(); // Reload the student list
+                } else {
+                    alert('Error marking attendance');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error marking attendance');
+            }
+        }
+
+        // Mark attendance as absent
+        async function markAttendanceAbsent() {
+            if (!selectedStudentId) return;
+            
+            try {
+                const response = await fetch(`{% url "api:mark-attendance" 0 %}`.replace('0', selectedStudentId), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        status: 'absent'
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Attendance marked as absent');
+                    closeModal();
+                    loadStudents(); // Reload the student list
+                } else {
+                    alert('Error marking attendance');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error marking attendance');
+            }
+        }
+
+        // Refresh attendance chart
+        async function refreshAttendanceChart() {
+            if (!selectedStudentId) return;
+            
+            try {
+                const response = await fetch(`{% url "api:student-detail" 0 %}`.replace('0', selectedStudentId));
+                const student = await response.json();
+                
+                createAttendanceChart(student.attendance_data);
+            } catch (error) {
+                console.error('Error refreshing chart:', error);
+            }
+        }
+
+        // Delete student
+        async function deleteStudent() {
+            if (!selectedStudentId) return;
+            
+            if (!confirm('Are you sure you want to delete this student?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`{% url "api:delete-student" 0 %}`.replace('0', selectedStudentId), {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    alert('Student deleted successfully');
+                    closeModal();
+                    loadStudents(); // Reload the student list
+                } else {
+                    alert('Error deleting student');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error deleting student');
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('student-detail-modal').style.display = 'none';
+            selectedStudentId = null;
+        }
+
+        // Show tab
+        function showTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabId).style.display = 'block';
+            
+            // Add active class to selected tab
+            document.querySelectorAll('.tab').forEach(tab => {
+                if (tab.textContent.toLowerCase().includes(tabId.replace('-', ' '))) {
+                    tab.classList.add('active');
+                }
+            });
+        }
+
+        // Edit student (placeholder function)
+        function editStudent(studentId) {
+            alert(`Edit functionality for student ${studentId} would open here`);
+            // This would open an edit form with the student's data pre-filled
+        }
+    </script>
+</body>
+</html>

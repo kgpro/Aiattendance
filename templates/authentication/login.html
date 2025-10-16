@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Login - Pause Attendance{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-header">
+        <h1><i class="fas fa-lock"></i> Welcome Back</h1>
+        <p>Sign in to access your account</p>
+    </div>
+    
+    <div class="auth-body">
+        <!-- Display messages -->
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li class="message {{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        
+        <form method="post" class="auth-form active" id="login-form">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="message error">
+                Please correct the errors below.
+            </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="id_username">Username</label>
+                <input type="text" name="username" id="id_username" placeholder="Enter your username" required>
+                {% if form.username.errors %}
+                <ul class="errorlist">
+                    {% for error in form.username.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_password">Password</label>
+                <input type="password" name="password" id="id_password" placeholder="Enter your password" required>
+                {% if form.password.errors %}
+                <ul class="errorlist">
+                    {% for error in form.password.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-options">
+                <div class="remember-me">
+                    <input type="checkbox" id="remember-me" name="remember_me">
+                    <label for="remember-me">Remember me</label>
+                </div>
+                <a href="#" class="forgot-password">Forgot password?</a>
+            </div>
+            
+            <button type="submit" class="auth-submit">Sign In</button>
+        </form>
+        
+        <div class="auth-footer">
+            Don't have an account? <a href="{% url 'authentication:signup' %}" id="switch-to-signup">Sign up</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
