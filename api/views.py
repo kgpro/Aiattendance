@@ -149,6 +149,7 @@ class EnrollStudentView(View):
             department = request.POST.get('department')
             email = request.POST.get('email')
 
+            print("Enrolling student:", name, student_id, department, email)
 
 
             # Check if student already exists

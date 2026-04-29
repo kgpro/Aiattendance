@@ -1,0 +1,63 @@
+# Environment variables
+
+.env
+.env.*
+*.env
+
+# Python cache files
+
+**pycache**/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+
+venv/
+env/
+ENV/
+.venv/
+
+# Django files
+
+*.log
+db.sqlite3
+db.sqlite3-journal
+
+# Distribution / packaging
+
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Testing
+
+.coverage
+htmlcov/
+.pytest_cache/
+
+# IDE / Editor files
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+
+.DS_Store
+Thumbs.db
+
+# Jupyter
+
+.ipynb_checkpoints
+
+# Temporary files
+
+tmp/
+temp/
+
+# Migrations cache (optional)
+
+**/migrations/*.pyc

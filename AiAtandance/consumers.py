@@ -10,6 +10,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from asgiref.sync import sync_to_async
 import logging
+from .models import AttendanceLog
 logger = logging.getLogger(__name__)
 
 
@@ -305,11 +306,12 @@ class FaceDetectionConsumer(AsyncWebsocketConsumer):
                                 "bbox": det["bbox"],
                                 "error": result.get("error", None),
                             }
-                            await self.send(text_data=json.dumps({
-                                "type": "recognition_results",
-                                "recognition": formatted_result,
-                                "timestamp": time.time(),
-                            }))
+                            if not AttendanceLog.is_present(formatted_result["student_id"]):
+                                await self.send(text_data=json.dumps({
+                                    "type": "recognition_results",
+                                    "recognition": formatted_result,
+                                    "timestamp": time.time(),
+                                }))
 
                 finally:
                     self.detection_queue.task_done()
