@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 def load_yolo_model():
     # Define model paths
-    model_dir = os.path.join(BASE_DIR, 'runs/train/face_detection_run/weights')
+    model_dir = os.path.join(BASE_DIR, 'runs')
     model_path = os.path.join(model_dir, 'best.pt')
 
     # Load model

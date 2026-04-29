@@ -16,4 +16,6 @@ urlpatterns = [
 
     path("students/",views.students, name="students"),
 
+    # path(staudents/)
+
 ]

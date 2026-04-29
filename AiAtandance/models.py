@@ -65,3 +65,6 @@ class AttendanceLog(models.Model):
     class Meta:
         ordering = ['-timestamp']
         app_label = 'AiAtandance'
+
+    def is_present(self, student_id):
+        return AttendanceLog.objects.filter(person__student_id=student_id).exists()
