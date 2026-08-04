@@ -11,6 +11,7 @@ class DeepFaceLite:
             raise ValueError("This Lite wrapper currently supports only Facenet512")
 
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"Using device: {self.device}")
         self.model = InceptionResnetV1(pretrained="vggface2").eval().to(self.device)
 
         # Preprocessing pipeline

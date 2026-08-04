@@ -1,51 +1,30 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Admin Login - AiAttendance{% endblock %}
+{% block title %}Login{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-header">
-        <h1><i class="fas fa-lock"></i> Admin Portal</h1>
-        <p>Administrator access only</p>
-    </div>
-    
-    <div class="auth-body">
-        {% if form.errors and not form.non_field_errors %}
-        <div class="message error">
-            Please correct the errors below.
-        </div>
-        {% endif %}
-
-        {% if form.non_field_errors %}
-        <div class="message error">
-            {% for error in form.non_field_errors %}
-            {{ error }}
-            {% endfor %}
-        </div>
-        {% endif %}
-        
-        <form method="post" class="auth-form active" id="login-form">
+<div style="max-width:400px; margin:2rem auto;">
+    <div class="card">
+        <h2 class="card-title">Login</h2>
+        <form method="post">
             {% csrf_token %}
-            
+            {% if form.non_field_errors %}
+            <div class="message error">{{ form.non_field_errors }}</div>
+            {% endif %}
             <div class="form-group">
-                <label for="id_username">Username</label>
-                <input type="text" name="username" id="id_username" placeholder="Admin username" required>
+                <label class="form-label">Username</label>
+                <input type="text" name="username" class="form-input" required>
             </div>
-            
             <div class="form-group">
-                <label for="id_password">Password</label>
-                <input type="password" name="password" id="id_password" placeholder="Admin password" required>
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-input" required>
             </div>
-            
-            <input type="hidden" name="next" value="{{ next }}">
-            
-            <button type="submit" class="auth-submit">Admin Login</button>
+            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
         </form>
-        
-        <div class="auth-footer">
-            <a href="{% url 'authentication:login' %}">← Back to User Login</a>
-        </div>
+        <p style="margin-top:1rem; text-align:center;">
+            Don't have an account? <a href="{% url 'authentication:signup' %}">Sign up</a>
+        </p>
     </div>
 </div>
 {% endblock %}

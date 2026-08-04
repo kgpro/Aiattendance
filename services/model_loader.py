@@ -18,8 +18,10 @@ def load_yolo_model():
 
     # Move to GPU if available
     if torch.cuda.is_available():
+        
         model.to("cuda:0")
         print("YOLO model loaded on GPU:", torch.cuda.get_device_name(0))
         logger.info(f"YOLO model loaded on GPU: {torch.cuda.get_device_name(0)}")
+        
 
     return model

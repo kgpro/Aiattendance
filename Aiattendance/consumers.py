@@ -20,7 +20,7 @@ class FaceDetectionConsumer(AsyncWebsocketConsumer):
         super().__init__(*args, **kwargs)
         self.yolo_model = None
         self.face_manager = None
-        self.detector_pool = ThreadPoolExecutor(max_workers=4)
+        self.detector_pool = ThreadPoolExecutor(max_workers=3)
         self.recognizer_pool = ThreadPoolExecutor(max_workers=2)
         self.is_processing = False
         self.frame_counter = 0

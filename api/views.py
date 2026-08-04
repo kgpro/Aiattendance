@@ -7,22 +7,30 @@ from django.views import View
 import json
 import cv2
 import numpy as np
-from AiAtandance.face_manager import FaceEmbeddingManager
+from Aiattendance.face_manager import FaceEmbeddingManager
 
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from datetime import datetime, timedelta
-from AiAtandance.models import Person, AttendanceLog, FaceEmbedding
+from Aiattendance.models import Person, AttendanceLog, FaceEmbedding
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
 @require_http_methods(["GET"])
 def attendance_stats(request):
+    
+    logger.info(f"Fetching attendance stats for user: {request.user}")
     today = timezone.now().date()
 
     user_name = request.user
 
     total_students = Person.objects.filter(is_active=True, user_name=user_name).count()
+    
+    logger.info(f"Total students for user {user_name}: {total_students}")
 
     today_attendance = AttendanceLog.objects.filter(timestamp__date=today,person__user_name=user_name).values('person').distinct().count()
 
@@ -40,6 +48,9 @@ def attendance_stats(request):
 class StudentListView(View):
     def get(self, request):
         # Get all active students
+    
+        
+        logger.info(f"Fetching students for user: {request.user}")
         students = Person.objects.filter(is_active=True, user_name=request.user )
 
         # Get today's date
@@ -74,6 +85,8 @@ class StudentListView(View):
                 'last_attendance': last_attendance_date.isoformat() if last_attendance_date else None,
                 'today_status': status
             })
+            
+            print(f"Student: {student.name}, Images Count: {images_count}, Last Attendance: {last_attendance_date}, Today Status: {status}")
 
         return JsonResponse({'students': student_data})
 
@@ -99,6 +112,7 @@ class StudentDetailView(View):
 
             today_status = "absent"
             if today_attendance:
+                
                 today_status = "present"
 
             # Get attendance data for the last 30 days for chart
@@ -135,6 +149,8 @@ class StudentDetailView(View):
             return JsonResponse(student_details)
 
         except Person.DoesNotExist:
+            
+            logger.warning(f"Student with id {_id} not found for user {request.user}")
             return JsonResponse({'error': 'Student not found'}, status=404)
 
 
@@ -149,11 +165,14 @@ class EnrollStudentView(View):
             department = request.POST.get('department')
             email = request.POST.get('email')
 
-            print("Enrolling student:", name, student_id, department, email)
+            logger.info(f"Enrolling student: {name}, {student_id}, {department}, {email} for user {request.user}")
 
 
             # Check if student already exists
             if Person.objects.filter(student_id=student_id, is_active=True).exists():
+                
+                logger.warning(f"Student with student_id {student_id} already exists for user {request.user}")
+                
                 return JsonResponse({'error': 'Student with this student_id already exists'}, status=400)
 
             # Create new student
@@ -164,14 +183,17 @@ class EnrollStudentView(View):
                 department=department,
                 email=email
             )
-            print("Student created:", student)
+            
+            logger.info(f"Student created: {student}")
 
             # Process uploaded images
             images = request.FILES.getlist('images')
             if len(images) > 3:
+                logger.warning(f"Too many images uploaded for student {student_id} by user {request.user}")
                 return JsonResponse({'error': 'Maximum 3 images allowed'}, status=400)
 
             if len(images) == 0:
+                logger.warning(f"No images provided for student {student_id} by user {request.user}")
                 return JsonResponse({'error': 'At least one image is required'}, status=400)
 
             # Process each image
@@ -182,7 +204,7 @@ class EnrollStudentView(View):
                 img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
                 if img is None:
-                    print("Invalid image:", image.name)
+                    logger.warning(f"Invalid image uploaded for student {student_id} by user {request.user}")
                     continue
 
                 face_manager = FaceEmbeddingManager() #user specific face manager
@@ -228,6 +250,7 @@ class UploadImagesView(View):
                 return JsonResponse({'error': 'Maximum 3 images allowed'}, status=400)
 
             if len(images) == 0:
+                logger.warning(f"No images provided for student {student_id} by user {request.user}")
                 return JsonResponse({'error': 'No images provided'}, status=400)
 
             # Process each image
@@ -238,6 +261,7 @@ class UploadImagesView(View):
                 img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
                 if img is None:
+                    logger.warning(f"Invalid image uploaded for student {student_id} by user {request.user}")
                     continue
 
                 face_manager = FaceEmbeddingManager() #user specific face manager
@@ -263,6 +287,7 @@ class UploadImagesView(View):
             })
 
         except Exception as e:
+            logger.error(f"Error uploading images for student {_id} by user {request.user}: {str(e)}")
             return JsonResponse({'error': f'Error uploading images: {str(e)}'}, status=500)
 
 
@@ -270,6 +295,7 @@ class UploadImagesView(View):
 @method_decorator(login_required, name='dispatch')
 class StudentAttendanceView(View):
     def get(self, request, _id):
+        logger.info(f"Fetching attendance for student {_id} by user {request.user}")
         try:
             student = Person.objects.get(id=_id, is_active=True)
 
@@ -295,9 +321,11 @@ class StudentAttendanceView(View):
             })
 
         except Person.DoesNotExist:
+            logger.warning(f"Student not found for ID: {_id}")
             return JsonResponse({'error': 'Student not found'}, status=404)
 
     def post(self, request, _id):
+        logger.info(f"Marking attendance for student {_id} by user {request.user}")
         try:
             data = json.loads(request.body)
             status = data.get('status')
@@ -311,6 +339,7 @@ class StudentAttendanceView(View):
                 timestamp__date=today
             ).first()
             if existing_attendance and status == 'present':
+                logger.warning(f"Attendance already marked for student {_id} by user {request.user}")
                 return JsonResponse({'error': 'Attendance already marked for today'}, status=400)
 
             # Create attendance log for present status
@@ -337,6 +366,7 @@ class StudentAttendanceView(View):
                     'attendance_id': attendance_log.id
                 })
             else:
+                logger.info(f"Marking attendance as absent for student {_id} by user {request.user}")
 
                 AttendanceLog.objects.filter(person=student, timestamp__date=today).delete()
                 return JsonResponse({
@@ -345,8 +375,10 @@ class StudentAttendanceView(View):
                 })
 
         except Person.DoesNotExist:
+            logger.warning(f"Student not found for ID: {_id}")
             return JsonResponse({'error': 'Student not found'}, status=404)
         except Exception as e:
+            logger.error(f"Error marking attendance for student {_id}: {str(e)}")
             return JsonResponse({'error': f'Error marking attendance: {str(e)}'}, status=500)
 
 
@@ -354,6 +386,7 @@ class StudentAttendanceView(View):
 @method_decorator(login_required, name='dispatch')
 class DeleteStudentView(View):
     def post(self, request, _id):
+        logger.info(f"Deleting student {_id} by user {request.user}")
         try:
             student = Person.objects.get(id=_id, is_active=True)
 
@@ -366,6 +399,8 @@ class DeleteStudentView(View):
             })
 
         except Person.DoesNotExist:
+            logger.warning(f"Student not found for ID: {_id}")
             return JsonResponse({'error': 'Student not found'}, status=404)
         except Exception as e:
+            logger.error(f"Error deleting student {_id}: {str(e)}")
             return JsonResponse({'error': f'Error deleting student: {str(e)}'}, status=500)

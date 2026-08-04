@@ -19,7 +19,7 @@ class Person(models.Model):
 
     class Meta:
         ordering = ['name']
-        app_label = 'AiAtandance'
+        app_label = 'Aiattendance'
 
 
 class FaceEmbedding(models.Model):
@@ -46,7 +46,7 @@ class FaceEmbedding(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-        app_label = 'AiAtandance'
+        app_label = 'Aiattendance'
 
 
 class AttendanceLog(models.Model):
@@ -64,7 +64,7 @@ class AttendanceLog(models.Model):
 
     class Meta:
         ordering = ['-timestamp']
-        app_label = 'AiAtandance'
+        app_label = 'Aiattendance'
 
     def is_present(self, student_id):
         return AttendanceLog.objects.filter(person__student_id=student_id).exists()

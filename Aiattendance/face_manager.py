@@ -1,10 +1,9 @@
 import cv2
 import numpy as np
 import os
-from datetime import datetime, timedelta
-from typing import List, Tuple, Optional, Dict, Any
+from datetime import  timedelta
+from typing import List,  Optional, Dict, Any
 
-import requests
 # from deepface import DeepFace
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction, models
@@ -53,16 +52,16 @@ class FaceEmbeddingManager:
     def _preload_deepface_model(self):
         """Pre-load the DeepFace model to avoid on-demand downloading during recognition"""
         try:
-            print(f"Pre-loading DeepFace model: {self.model_name}")
+            logger.info(f"Pre-loading DeepFace model: {self.model_name} on device: cuda")
             # Create a dummy embedding to force model loading
             dummy_array = np.random.rand(100, 100, 3).astype(np.uint8)
             Deepface=DeepFace(
                 device="cuda"
             )
-            print(f"facenet512 loaded successfully")
+            logger.info(f"facenet512 loaded successfully")
             return Deepface
         except Exception as e:
-            print(f"Error pre-loading DeepFace model: {str(e)}")
+            logger.error(f"Error pre-loading DeepFace model: {str(e)}")
 
     def _load_cache(self):
         """Load all active embeddings into memory cache for faster recognition."""
@@ -88,10 +87,10 @@ class FaceEmbeddingManager:
                     'embedding': embedding_obj.get_embedding(),
                 })
 
-            print(f"Loaded {len(embeddings)} embeddings into cache for {len(self._embedding_cache)} people")
+            logger.info(f"Loaded {len(embeddings)} embeddings into cache for {len(self._embedding_cache)} people")
 
         except Exception as e:
-            print(f"Error loading cache: {str(e)}")
+            logger.error(f"Error loading cache: {str(e)}")
             self._embedding_cache = {}
 
     def create_embedding_from_face_crop(self,face_crop: np.ndarray) -> Optional[np.ndarray]:
@@ -122,10 +121,11 @@ class FaceEmbeddingManager:
             if embedding and len(embedding) > 0:
                 return np.array(embedding[0]["embedding"])
             else:
+                logger.warning("No embedding returned from DeepFace for the given face crop")
                 return None
 
         except Exception as e:
-            print(f"Error creating embedding from face crop: {str(e)}")
+            logger.error(f"Error creating embedding from face crop: {str(e)}")
             return None
 
     def store_embedding(self,
@@ -172,12 +172,12 @@ class FaceEmbeddingManager:
                     'embedding': embedding,
                 })
 
-                print(f"Stored embedding for {person.name} with ID {face_embedding.id}")
+                logger.info(f"Stored embedding for {person.name} with ID {face_embedding.id}")
                 return face_embedding
 
         except Exception as e:
             raise e
-            return None
+            
 
 
 
@@ -196,6 +196,7 @@ class FaceEmbeddingManager:
             Dictionary with match info or None if no match found
         """
         if not self._embedding_cache:
+            logger.warning("Embedding cache is empty. Load embeddings before recognition.")
             return None
 
         best_match = None
@@ -244,7 +245,7 @@ class FaceEmbeddingManager:
                 return None
 
         except Exception as e:
-            print(f"Error during recognition: {str(e)}")
+            logger.error(f"Error during recognition: {str(e)}")
             return None
 
     def _is_duplicate_attendance(self, student_id: int, time_window: int) -> bool:
@@ -257,7 +258,7 @@ class FaceEmbeddingManager:
             ).exists()
             return recent_attendance
         except Exception as e:
-            print(f"Error checking duplicate attendance: {str(e)}")
+            logger.error(f"Error checking duplicate attendance: {str(e)}")
             return False
 
 
@@ -279,9 +280,9 @@ class FaceEmbeddingManager:
                     'distance_metric': self.distance_metric
                 }
             )
-            print(f"Attendance logged for {match_info['person_name']}")
+            logger.info(f"Attendance logged for {match_info['person_name']}")
         except Exception as e:
-            print(f"Error saving attendance log: {str(e)}")
+            logger.error(f"Error saving attendance log: {str(e)}")
 
     def get_all_persons(self) :
         """Get all active persons."""
@@ -307,10 +308,10 @@ class FaceEmbeddingManager:
             return True
 
         except ObjectDoesNotExist:
-            print(f"Embedding {embedding_id} not found")
+            logger.warning(f"Embedding {embedding_id} not found")
             return False
         except Exception as e:
-            print(f"Error deleting embedding: {str(e)}")
+            logger.error(f"Error deleting embedding: {str(e)}")
             return False
 
     def _calculate_distance(self, embedding1: np.ndarray, embedding2: np.ndarray) -> float:
@@ -333,7 +334,7 @@ class FaceEmbeddingManager:
     def update_threshold(self, new_threshold: float):
         """Update recognition threshold."""
         self.threshold = new_threshold
-        print(f"Updated recognition threshold to {new_threshold}")
+        logger.info(f"Updated recognition threshold to {new_threshold}")
 
 
     def recognize_faces_batch(self, face_embeddings: List[np.ndarray],
@@ -352,7 +353,7 @@ class FaceEmbeddingManager:
         for embedding in face_embeddings:
             results.append(self.recognize_face(embedding, save_attendance))
 
-
+        logger.info(f"Batch recognition completed for {len(face_embeddings)} faces")
         return results
 
 
@@ -378,7 +379,9 @@ class FaceEmbeddingManager:
                 'person_name': embedding_obj.person.name
             }
         except ObjectDoesNotExist:
+            logger.warning(f"Embedding {embedding_id} not found in database")
             return None
+        
 
     def create_embeddings_from_batch(self, face_crops):
         """
